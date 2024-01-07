@@ -1,0 +1,61 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:  <Ahmet Elburuz Gurbuz>
+-- Create date: <26.12.2020>
+-- Description: <Add Disabled Student>
+-- =============================================
+alter PROCEDURE sp_AddDisabledStudent
+	@firstName nvarchar(50),
+	@lastName nvarchar(50),
+	@birthPlace nvarchar(50),
+	@birthDate smalldatetime,
+	@parentFirstName nvarchar(50),
+	@parentLastName nvarchar(50),
+	@parentGender char(1),
+	@parentGsm char(11),
+	@city nvarchar(25),
+	@street nvarchar(25),
+	@apartmentName nvarchar(25),
+	@apartmentNumber smallint,
+	@zipCode int,
+	@ramReportNumber nvarchar(8),
+	@diagnosis nvarchar(50),
+	@decisionDate smalldatetime,
+	@healthReportNumber	nvarchar(9),
+	@disabilityDiagnosis nvarchar(50),
+	@applicatonDate	smalldatetime,
+	@disabilityPercentage tinyint
+AS
+BEGIN
+	SET NOCOUNT ON;
+	declare @stdID int, @parentID int, @addressID int
+	set @stdID = IDENT_CURRENT('DISABLED_STUDENT')
+	set @parentID = IDENT_CURRENT('PARENT')
+	set @addressID = IDENT_CURRENT('ADDRESS')
+
+	INSERT INTO ADDRESS(city, street,apartmentName,apartmentNumber,zipCode)
+	VALUES (@city, @street,@apartmentName,@apartmentNumber,@zipCode);
+	
+	set @decisionDate = CONVERT(smalldatetime, @decisionDate, 104)
+	
+	exec sp_AddReports @stdID, @ramReportNumber,@diagnosis,@decisionDate,@healthReportNumber,@disabilityDiagnosis,@applicatonDate,@disabilityPercentage
+	
+	INSERT INTO PARENT(firstName,lastName,gender,gsm,addressID,studentID)
+	VALUES (@parentFirstName,@parentLastName,@parentGender,@parentGsm,@addressID,@stdID);
+
+	INSERT INTO REPORT_LIST(studentID, ramReportNumber,healthReportNumber)
+	VALUES (@stdID, @ramReportNumber, @healthReportNumber);
+
+	INSERT INTO DISABLED_STUDENT(firstName, lastName,birthPlace,birthDate, parentID)
+	VALUES (@firstName, @lastName,@birthPlace,CONVERT(smalldatetime, @birthDate, 104),@parentID);
+
+	
+
+END
+GO
+
+--sp_AddDisabledStudent 'Elb','Gur','Ant','2020.04.07','parentssss','parentssss','g','561456','ant','','apppsame',21,17000,'44','diakj', '2020.04.06','44','diakj','2020.04.06',20
+
